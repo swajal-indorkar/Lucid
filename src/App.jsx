@@ -309,6 +309,75 @@ function LetterEnvelope() {
   );
 }
 
+function IntruderScreen() {
+  useEffect(() => {
+    // Vibrate intensely
+    let vibrateInterval;
+    if (navigator.vibrate) {
+      navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500]);
+      vibrateInterval = setInterval(() => {
+        navigator.vibrate([500, 200, 500, 200, 500, 200]);
+      }, 2000);
+    }
+    
+    // Play loud siren using AudioContext
+    let ctx;
+    let osc;
+    let sirenInterval;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      ctx = new AudioCtx();
+      osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      
+      // Siren effect
+      sirenInterval = setInterval(() => {
+        if (ctx.state === 'running') {
+          osc.frequency.setValueAtTime(800, ctx.currentTime);
+          setTimeout(() => {
+            if (ctx.state === 'running') osc.frequency.setValueAtTime(400, ctx.currentTime);
+          }, 300);
+        }
+      }, 600);
+      
+      gainNode.gain.value = 1; // max volume
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      osc.start();
+    } catch (e) {
+      console.error("Audio Context failed", e);
+    }
+
+    return () => {
+      if (vibrateInterval) clearInterval(vibrateInterval);
+      if (sirenInterval) clearInterval(sirenInterval);
+      if (osc) {
+        try { osc.stop(); } catch(e){}
+      }
+      if (ctx) {
+        try { ctx.close(); } catch(e){}
+      }
+    };
+  }, []);
+
+  return (
+    <motion.div 
+      className="intruder-screen"
+      style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'white', fontFamily: 'monospace', textAlign: 'center', padding: '2rem' }}
+      animate={{ backgroundColor: ['#ff0000', '#0000ff', '#ff0000'] }}
+      transition={{ repeat: Infinity, duration: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, backgroundColor: ['#ff0000', '#0000ff', '#ff0000'] }}
+    >
+      <motion.h1 style={{ fontSize: 'clamp(4rem, 15vw, 10rem)', margin: 0, lineHeight: 1, textShadow: '0 0 20px black' }} animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.2 }}>WARNING</motion.h1>
+      <h2 style={{ fontSize: 'clamp(2rem, 8vw, 5rem)', marginTop: '2rem', textShadow: '0 0 10px black' }}>INTRUDER DETECTED</h2>
+      <p style={{ fontSize: 'clamp(1.2rem, 4vw, 2.5rem)', marginTop: '2rem', fontWeight: 'bold' }}>DEVICE LOCKED. CAPTURING PHOTO...</p>
+    </motion.div>
+  );
+}
 
 function App() {
   const [hasEntered, setHasEntered] = useState(false);
@@ -695,6 +764,7 @@ function App() {
           </motion.footer>
         </>
       )}
+      {isLockedOut && <IntruderScreen />}
     </>
   );
 }
