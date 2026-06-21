@@ -360,6 +360,8 @@ function App() {
   const [vaultUnlocked, setVaultUnlocked] = useState(false);
   const [pinError, setPinError] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  const [pinAttempts, setPinAttempts] = useState(0);
+  const [isLockedOut, setIsLockedOut] = useState(false);
 
   // Custom cursor
   useEffect(() => {
@@ -481,24 +483,33 @@ function App() {
                   </button>
                 </motion.div>
 
-                {pinError && (
+                {isLockedOut ? (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ color: '#ff4444', fontSize: '1rem', textAlign: 'center', marginBottom: '1rem', fontWeight: 'bold' }}
+                  >
+                    Too many wrong attempts! 🔒<br/>Reload the page to try again.
+                  </motion.p>
+                ) : pinError && (
                   <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{ color: '#ff4444', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1rem' }}
                   >
-                    Wrong code, try again!
+                    Wrong code! ({3 - pinAttempts} attempts left)
                   </motion.p>
                 )}
 
                 {/* Keypad */}
-                <div className="pin-keypad">
+                <div className="pin-keypad" style={{ opacity: isLockedOut ? 0.5 : 1, pointerEvents: isLockedOut ? 'none' : 'auto' }}>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((key, idx) => (
                     key === null ? <div key={idx} /> : (
                       <MagneticButton
                         key={idx}
                         className="pin-key"
                         onClick={() => {
+                          if (isLockedOut) return;
                           if (key === 'del') {
                             setSecretPin(prev => prev.slice(0, -1));
                             setPinError(false);
@@ -511,6 +522,11 @@ function App() {
                                 setTimeout(() => handleEnter(), 400);
                               } else {
                                 setPinError(true);
+                                const newAttempts = pinAttempts + 1;
+                                setPinAttempts(newAttempts);
+                                if (newAttempts >= 3) {
+                                  setTimeout(() => setIsLockedOut(true), 600);
+                                }
                                 setTimeout(() => setSecretPin(''), 600);
                               }
                             }
