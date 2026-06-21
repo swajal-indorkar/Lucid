@@ -105,33 +105,6 @@ function SpotlightCard({ children, className = "", onClick, whileHover }) {
   );
 }
 
-// Time Counter Component
-function TimeCounter() {
-  const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const diff = now - START_DATE;
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-      setTime({ days, hours, minutes, seconds });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="time-counter-grid">
-      <div className="time-box"><div className="time-number">{time.days}</div><div className="time-label">Days</div></div>
-      <div className="time-box"><div className="time-number">{time.hours}</div><div className="time-label">Hours</div></div>
-      <div className="time-box"><div className="time-number">{time.minutes}</div><div className="time-label">Minutes</div></div>
-      <div className="time-box"><div className="time-number">{time.seconds}</div><div className="time-label">Seconds</div></div>
-    </div>
-  );
-}
-
 // Swipeable Deck
 function SwipeableDeck() {
   const [cards, setCards] = useState(littleThingsDeck);
@@ -346,17 +319,6 @@ function App() {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </section>
-
-            {/* TIME COUNTER SECTION */}
-            <section id="counter">
-              <div className="container">
-                <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>Every Second With You...</motion.h2>
-                <motion.p initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} style={{ textAlign: 'center', marginBottom: '4rem' }}>Since the moment you walked into my life.</motion.p>
-                <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-                  <TimeCounter />
-                </motion.div>
-              </div>
             </section>
 
             {/* TIMELINE SECTION */}
