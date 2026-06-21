@@ -233,6 +233,109 @@ section { min-height: 100vh; display: flex; flex-direction: column; justify-cont
 .note-card.revealed .note-secret { filter: blur(0); opacity: 1; }
 .note-hint { font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255, 255, 255, 0.3); margin-top: 1rem; opacity: 0; transition: opacity 0.3s; position: absolute; bottom: 2rem; }
 
+/* Secret Vault */
+.secret-vault-section {
+  text-align: center;
+  padding: 8rem 0;
+  position: relative;
+  z-index: 10;
+}
+
+.pin-pad-container {
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.pin-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.pin-dots {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.pin-dot {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent-pink);
+  transition: all 0.3s ease;
+}
+
+.pin-dot.filled {
+  border-color: var(--accent-pink);
+  background: rgba(255, 42, 133, 0.1);
+  box-shadow: 0 0 15px rgba(255, 42, 133, 0.2), inset 0 0 10px rgba(255, 42, 133, 0.05);
+}
+
+.pin-dot.filled::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent-pink);
+  box-shadow: 0 0 10px var(--accent-pink);
+}
+
+.pin-dot.filled:has(*)::after {
+  display: none;
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.pin-key {
+  width: 100%;
+  aspect-ratio: 1.4;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.pin-key:hover {
+  background: rgba(255, 42, 133, 0.08);
+  border-color: rgba(255, 42, 133, 0.3);
+  box-shadow: 0 0 20px rgba(255, 42, 133, 0.15);
+}
+
+.pin-key:active {
+  transform: scale(0.95);
+  background: rgba(255, 42, 133, 0.15);
+}
+
+.vault-message-card {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 /* Promise Game */
 .promise-section { text-align: center; padding: 6rem 0; position: relative; z-index: 10; }
 .promise-actions { display: flex; gap: 2rem; justify-content: center; margin-top: 4rem; position: relative; min-height: 100px; }
