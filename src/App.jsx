@@ -6,7 +6,7 @@ import './index.css';
 
 // --- CONFIGURATION ---
 const SECRET_NAME = "My Love";
-const ROMANTIC_AUDIO_URL = "https://cdn.pixabay.com/download/audio/2022/05/16/audio_96825c31f9.mp3?filename=romantic-piano-111195.mp3";
+const YOUTUBE_VIDEO_ID = "eRM2reLxN5k";
 const START_DATE = new Date("2024-01-01T00:00:00"); // Adjust to real date later
 
 const timelineEvents = [
@@ -317,7 +317,40 @@ function App() {
   const [isTypingDone, setIsTypingDone] = useState(false);
   const [revealedNotes, setRevealedNotes] = useState(new Set());
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
+  const ytPlayerRef = useRef(null);
+  const ytReadyRef = useRef(false);
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    if (window.YT) return;
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }, []);
+
+  // Initialize YouTube player after entering
+  useEffect(() => {
+    if (!hasEntered) return;
+    const initPlayer = () => {
+      ytPlayerRef.current = new window.YT.Player('yt-player', {
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: { autoplay: 1, loop: 1, playlist: YOUTUBE_VIDEO_ID },
+        events: {
+          onReady: (e) => {
+            ytReadyRef.current = true;
+            e.target.setVolume(40);
+            e.target.playVideo();
+            setIsPlaying(true);
+          },
+        },
+      });
+    };
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+  }, [hasEntered]);
   const [noButtonPosition, setNoButtonPosition] = useState({ x: 0, y: 0 });
   const [sheSaidYes, setSheSaidYes] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -352,16 +385,16 @@ function App() {
     setIsUnlocking(true);
     setTimeout(() => {
       setHasEntered(true);
-      if (audioRef.current) {
-        audioRef.current.volume = 0.4;
-        audioRef.current.play().then(() => setIsPlaying(true)).catch(e => console.log("Audio autoplay prevented"));
-      }
     }, 1000);
   };
 
   const toggleAudio = () => {
-    if (isPlaying) audioRef.current.pause();
-    else audioRef.current.play();
+    if (!ytPlayerRef.current || !ytReadyRef.current) return;
+    if (isPlaying) {
+      ytPlayerRef.current.pauseVideo();
+    } else {
+      ytPlayerRef.current.playVideo();
+    }
     setIsPlaying(!isPlaying);
   };
 
@@ -410,7 +443,7 @@ function App() {
       <div className="background-container">
         <div className="ambient-orb orb-1"></div><div className="ambient-orb orb-2"></div><div className="ambient-orb orb-3"></div>
       </div>
-      <audio ref={audioRef} loop src={ROMANTIC_AUDIO_URL} />
+      <div id="yt-player" style={{ position: 'fixed', top: '-9999px', left: '-9999px', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }} />
 
       <AnimatePresence>
         {!hasEntered && (
