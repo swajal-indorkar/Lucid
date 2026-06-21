@@ -416,12 +416,91 @@ function App() {
         {!hasEntered && (
           <motion.div className="splash-screen" initial={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }} transition={{ duration: 1, ease: "easeInOut" }}>
             <motion.h1 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>Hello, Beautiful.</motion.h1>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ marginBottom: '4rem', opacity: 0.6 }}>I made something special for you.</motion.p>
-            <motion.button className="unlock-btn" onClick={handleEnter} disabled={isUnlocking} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <motion.div animate={isUnlocking ? { scale: 1.2, opacity: 0 } : { scale: 1, opacity: 1 }} transition={{ duration: 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {isUnlocking ? <Unlock size={24} /> : <Lock size={24} />} {isUnlocking ? "Unlocking..." : "For You"}
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} style={{ marginBottom: '3rem', opacity: 0.6 }}>Enter the code to unlock your surprise.</motion.p>
+
+            {!isUnlocking ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                {/* PIN Display */}
+                <motion.div
+                  className="pin-display"
+                  animate={pinError ? { x: [-20, 20, -15, 15, -5, 5, 0] } : {}}
+                  transition={{ duration: 0.5 }}
+                  style={{ marginBottom: '1.5rem' }}
+                >
+                  <div className="pin-dots">
+                    {[0, 1, 2, 3].map((i) => (
+                      <motion.div
+                        key={i}
+                        className={`pin-dot ${i < secretPin.length ? 'filled' : ''}`}
+                        animate={i < secretPin.length ? { scale: [0.5, 1.3, 1] } : {}}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {showPin && i < secretPin.length ? secretPin[i] : ''}
+                      </motion.div>
+                    ))}
+                  </div>
+                  <button
+                    className="pin-toggle-visibility"
+                    onClick={() => setShowPin(!showPin)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}
+                  >
+                    {showPin ? <EyeOff size={18} color="var(--text-secondary)" /> : <Eye size={18} color="var(--text-secondary)" />}
+                  </button>
+                </motion.div>
+
+                {pinError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    style={{ color: '#ff4444', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1rem' }}
+                  >
+                    Wrong code, try again!
+                  </motion.p>
+                )}
+
+                {/* Keypad */}
+                <div className="pin-keypad">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((key, idx) => (
+                    key === null ? <div key={idx} /> : (
+                      <MagneticButton
+                        key={idx}
+                        className="pin-key"
+                        onClick={() => {
+                          if (key === 'del') {
+                            setSecretPin(prev => prev.slice(0, -1));
+                            setPinError(false);
+                          } else if (secretPin.length < 4) {
+                            const newPin = secretPin + key;
+                            setSecretPin(newPin);
+                            setPinError(false);
+                            if (newPin.length === 4) {
+                              if (newPin === '2609') {
+                                setTimeout(() => handleEnter(), 400);
+                              } else {
+                                setPinError(true);
+                                setTimeout(() => setSecretPin(''), 600);
+                              }
+                            }
+                          }
+                        }}
+                      >
+                        {key === 'del' ? <Delete size={20} /> : key}
+                      </MagneticButton>
+                    )
+                  ))}
+                </div>
               </motion.div>
-            </motion.button>
+            ) : (
+              <motion.div
+                initial={{ opacity: 1 }}
+                animate={{ scale: 1.2, opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'center' }}
+              >
+                <Unlock size={32} color="var(--accent-pink)" />
+                <span style={{ fontSize: '1.4rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Unlocking...</span>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
