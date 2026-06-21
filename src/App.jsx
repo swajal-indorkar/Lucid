@@ -142,9 +142,121 @@ function SwipeableDeck() {
   );
 }
 
-// Digital Envelope Letter
+// Handwriting Line Component — reveals text char by char
+function HandwritingLine({ text, delay, speed = 40 }) {
+  const [displayedText, setDisplayedText] = useState("");
+  const [isDone, setIsDone] = useState(false);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const startTimer = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(startTimer);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started) return;
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < text.length) {
+        setDisplayedText(text.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsDone(true);
+      }
+    }, speed);
+    return () => clearInterval(interval);
+  }, [started, text, speed]);
+
+  if (!started) return <div className="hw-line-placeholder">&nbsp;</div>;
+
+  return (
+    <motion.div
+      className="hw-line"
+      initial={{ opacity: 0, x: -5 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <span>{displayedText}</span>
+      {!isDone && <span className="hw-pen-cursor">|</span>}
+    </motion.div>
+  );
+}
+
+// Ink Splatter Particles
+function InkSplatter({ isActive }) {
+  const splatters = useRef(
+    Array.from({ length: 6 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      delay: Math.random() * 3 + 1,
+    }))
+  );
+
+  if (!isActive) return null;
+
+  return (
+    <div className="ink-splatters">
+      {splatters.current.map((s) => (
+        <motion.div
+          key={s.id}
+          className="ink-dot"
+          style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: [0, 0.6, 0.3], scale: [0, 1.5, 1] }}
+          transition={{ delay: s.delay, duration: 0.8, ease: "easeOut" }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Digital Envelope Letter with Handwriting Animation
 function LetterEnvelope() {
   const [isOpen, setIsOpen] = useState(false);
+  const [writingStarted, setWritingStarted] = useState(false);
+
+  const letterLines = [
+    { text: "My Dearest,", isBreak: false },
+    { text: "", isBreak: true },
+    { text: "I wanted to build something completely unique to show", isBreak: false },
+    { text: "you how much you mean to me. Every single pixel on", isBreak: false },
+    { text: "this website, every color, every animation was placed", isBreak: false },
+    { text: "here with you in my mind.", isBreak: false },
+    { text: "", isBreak: true },
+    { text: "You are the most incredible person I've ever met.", isBreak: false },
+    { text: "You bring so much light into my life that sometimes", isBreak: false },
+    { text: "I wonder how I ever navigated the dark before you.", isBreak: false },
+    { text: "", isBreak: true },
+    { text: "Thank you for being you. Thank you for your patience,", isBreak: false },
+    { text: "your laugh, and your endless love.", isBreak: false },
+    { text: "I am so lucky to have you.", isBreak: false },
+    { text: "", isBreak: true },
+    { text: "Forever Yours,", isBreak: false },
+    { text: "sujal", isBreak: false },
+  ];
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => setWritingStarted(true), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Calculate cumulative delay for each line
+  const getLineDelay = (index) => {
+    let totalDelay = 0;
+    for (let i = 0; i < index; i++) {
+      if (letterLines[i].isBreak) {
+        totalDelay += 300;
+      } else {
+        totalDelay += letterLines[i].text.length * 35 + 200;
+      }
+    }
+    return totalDelay;
+  };
 
   return (
     <div className="letter-section">
@@ -160,21 +272,43 @@ function LetterEnvelope() {
           </motion.div>
         ) : (
           <motion.div
-            className="letter-content"
-            initial={{ opacity: 0, height: 0, y: 50 }} animate={{ opacity: 1, height: 'auto', y: 0 }} transition={{ duration: 1, type: "spring" }}
+            className="letter-content hw-letter"
+            initial={{ opacity: 0, height: 0, y: 50 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            transition={{ duration: 1, type: "spring" }}
           >
-            My Dearest,<br /><br />
-            I wanted to build something completely unique to show you how much you mean to me. Every single pixel on this website, every color, every animation was placed here with you in my mind.<br /><br />
-            You are the most incredible person I've ever met. You bring so much light into my life that sometimes I wonder how I ever navigated the dark before you.<br /><br />
-            Thank you for being you. Thank you for your patience, your laugh, and your endless love. I am so lucky to have you.<br /><br />
-            Forever Yours,<br />
-            Me
+            {/* Paper texture lines */}
+            <div className="hw-paper-lines">
+              {Array.from({ length: 20 }, (_, i) => (
+                <div key={i} className="hw-paper-line" />
+              ))}
+            </div>
+
+            {/* Ink splatters */}
+            <InkSplatter isActive={writingStarted} />
+
+            {/* Handwriting content */}
+            <div className="hw-content">
+              {writingStarted && letterLines.map((line, index) => (
+                line.isBreak ? (
+                  <div key={index} className="hw-break" />
+                ) : (
+                  <HandwritingLine
+                    key={index}
+                    text={line.text}
+                    delay={getLineDelay(index)}
+                    speed={line.text === "sujal" || line.text === "Forever Yours," ? 80 : 35}
+                  />
+                )
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
   );
 }
+
 
 function App() {
   const [hasEntered, setHasEntered] = useState(false);
